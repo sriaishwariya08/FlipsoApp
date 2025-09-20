@@ -1,0 +1,37 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '7.x.x'
+
+  - script: dotnet build --configuration $(buildConfiguration)
+    displayName: 'Build Project'
+
+  - script: dotnet publish -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
+    displayName: 'Publish Project'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: '<Your Azure Subscription Name>'
+      appType: 'webApp'
+      appName: 'FlipsoApp12345'
+      package: '$(Build.ArtifactStagingDirectory)/**/*'
